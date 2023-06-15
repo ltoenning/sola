@@ -17,6 +17,14 @@
 #include "solanet/serializer/serialize.h"
 
 namespace natter::minhcast {
+
+struct MsgIdMessage {
+  std::string topic_;
+  UUID message_id_;
+
+  SERIALIZE(topic_, message_id_);
+};
+
 class MinhcastMessage {
 public:
   MinhcastMessage() = default;

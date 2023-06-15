@@ -89,6 +89,7 @@ public:
    * @param own_uuid own node uuid
    */
   void logSendFullMsg(UUID msg_uuid, UUID uuid, UUID own_uuid);
+  void logSendMsgId(UUID msg_uuid, UUID uuid, UUID own_uuid);
 
   /**
    * Log receiving full message

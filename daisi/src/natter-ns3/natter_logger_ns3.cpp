@@ -346,6 +346,10 @@ void NatterLoggerNs3::logSendFullMsg(UUID msg_uuid, UUID uuid, UUID own_uuid) {
   logSendReceive(msg_uuid, own_uuid, uuid, MsgType::kFullMsg, Mode::kSend);
 }
 
+void NatterLoggerNs3::logSendMsgId(UUID msg_uuid, UUID uuid, UUID own_uuid) {
+  logSendReceive(msg_uuid, own_uuid, uuid, MsgType::kMsgId, Mode::kSend);
+}
+
 void NatterLoggerNs3::logReceiveFullMsg(UUID msg_uuid, UUID sender, UUID own_uuid) {
   logSendReceive(msg_uuid, sender, own_uuid, MsgType::kFullMsg, Mode::kReceive);
 }

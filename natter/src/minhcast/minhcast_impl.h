@@ -26,6 +26,9 @@
 namespace natter::minhcast {
 
 class MinhcastMessage;
+struct MsgIdMessage;
+
+using MinhcastMessages = std::variant<MsgIdMessage, MinhcastMessage>;
 
 class NatterMinhcast::Impl {
 public:
@@ -107,6 +110,7 @@ private:
 
   // Processing method for newly arrived messages
   void processMessage(const MinhcastMessage &msg);
+  void processMessage(const MsgIdMessage &msg);
 
   void broadcast(const BroadcastInfo &bc);
 
@@ -150,7 +154,9 @@ private:
   UUID uuid_;
   natter::logging::Logger logger_;
   MsgReceiveFct msg_recv_callback_;
-  core::NetworkFacade<MinhcastMessage> network_;
+  core::NetworkFacade<MinhcastMessages> network_;
+
+  std::set<NodeInfo> current_infos_;
 
 #ifndef NDEBUG
   // To keep track of possible received duplicate messages

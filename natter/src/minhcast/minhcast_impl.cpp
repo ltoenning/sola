@@ -10,6 +10,7 @@
 #include <cassert>
 #include <cmath>
 #include <limits>
+#include <random>
 #include <stdexcept>
 #include <utility>
 
@@ -37,7 +38,9 @@ NatterMinhcast::Impl::Impl(MsgReceiveFct recv_callback,
                            std::vector<logging::LoggerPtr> logger, UUID node_uuid)
     : uuid_(node_uuid),
       msg_recv_callback_(std::move(recv_callback)),
-      network_([this](const MinhcastMessage &msg) -> void { processMessage(msg); }) {
+      network_([this](const MinhcastMessages &msg) -> void {
+        std::visit([this](auto &&a) { processMessage(a); }, msg);
+      }) {
   std::for_each(logger.begin(), logger.end(), [this](const logging::LoggerPtr &logger) {
     logger->setApplicationUUID(uuid_);
     logger_.addLogger(logger);
@@ -61,6 +64,10 @@ void NatterMinhcast::Impl::processMessage(const MinhcastMessage &msg) {
   if (!msg.isInnerForward()) {
     broadcast(createBroadcastInfo(msg));
   }
+}
+
+void NatterMinhcast::Impl::processMessage(const MsgIdMessage &msg) {
+  // TODO
 }
 
 BroadcastInfo NatterMinhcast::Impl::createBroadcastInfo(const MinhcastMessage &msg) const {
@@ -397,6 +404,7 @@ void NatterMinhcast::Impl::sendMessage(const BroadcastInfo &bc, const NodeInfo &
                                        uint32_t up_limit, uint32_t down_limit, bool inner_forward) {
   MinhcastMessage minhcast(bc.topic, bc.msg_id, bc.initial_node, bc.own_node, bc.content,
                            bc.current_round, {up_limit, down_limit}, inner_forward);
+  current_infos_.insert(peer);
 
   logger_.logSendFullMsg(bc.msg_id, peer.uuid, getUUID());
   network_.send(peer.network_info, minhcast);
@@ -598,16 +606,59 @@ std::optional<NatterMinhcast::NodeInfo> NatterMinhcast::Impl::getHigherAdjacent(
   return receiver_higher_adjacent;
 }
 
+static std::mt19937 gen(1);  // TODO For testing only
+
 void NatterMinhcast::Impl::broadcast(const BroadcastInfo &bc) {
 #ifndef NDEBUG
   logMinhcastBroadcastInfo(bc);
 #endif
 
+  current_infos_.clear();
+
   auto [parent_up_border, child_down_border] = sendToAdjacents(bc);
   sendToParent(bc, parent_up_border);
   const auto [other_sending_down, send_to_children] = sendToChildren(bc, child_down_border);
   sendToInlevel(bc, other_sending_down, send_to_children);
+
+  auto all_peers = other_peers_[bc.topic];
+
+  // Calculate set difference
+  for (const auto &p : current_infos_) {
+    all_peers.erase(p);
+  }
+
+  current_infos_.clear();
+
+  // Also erase initial sender and last sender
+  // Only while only comparing position, just init with pos
+  NodeInfo n1{bc.getInitialNodePos()};
+  NodeInfo n2{bc.getLastNodePos()};
+  all_peers.erase(n1);
+  all_peers.erase(n2);
+
+  // Transform to vector to sample a random subset only
+  std::vector<NodeInfo> nodes;
+  for (const auto &peer : all_peers) {
+    nodes.push_back(peer);
+  }
+
+  std::shuffle(nodes.begin(), nodes.end(), gen);
+  const double selectivity = 0.1;
+
+  const int max_number = std::max(1, static_cast<int>(selectivity * all_peers.size()));
+  // int max_number = 1;
+  MsgIdMessage msg_id_msg{bc.topic, bc.msg_id};
+
+  int current = 0;
+  for (const auto &peer : all_peers) {
+    logger_.logSendMsgId(bc.msg_id, peer.uuid, getUUID());
+    network_.send(peer.network_info, msg_id_msg);
+
+    current += 1;
+    if (current >= max_number) break;
+  }
 }
+
 void NatterMinhcast::Impl::subscribeTopic(const std::string &topic, const NodeInfo &info) {
   NATTER_CHECK(std::get<2>(info.position) >= 2, "Fanout must be >= 2")
   other_peers_[topic] = {};

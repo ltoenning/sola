@@ -52,7 +52,7 @@ public:
 private:
   enum class Mode : uint16_t { kReceive, kSend };
 
-  enum class MsgType : uint16_t { kUnknown, kFullMsg };
+  enum class MsgType : uint16_t { kUnknown, kFullMsg, kMsgId };
 
   void logCritical(const std::string &msg) const final;
 
@@ -71,6 +71,7 @@ private:
   void logNewMessage(const std::string &topic, const std::string &msg, UUID msg_uuid) final;
 
   void logSendFullMsg(UUID msg_uuid, UUID uuid, UUID own_uuid) final;
+  void logSendMsgId(UUID msg_uuid, UUID uuid, UUID own_uuid) final;
 
   void logReceiveFullMsg(UUID msg_uuid, UUID sender, UUID own_uuid) final;
 

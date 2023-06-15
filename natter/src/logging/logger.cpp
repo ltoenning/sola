@@ -56,6 +56,11 @@ void Logger::logSendFullMsg(UUID msg_uuid, UUID uuid, UUID own_uuid) {
     log([&](const LoggerPtr &logger) { logger->logSendFullMsg(msg_uuid, uuid, own_uuid); });
 }
 
+void Logger::logSendMsgId(UUID msg_uuid, UUID uuid, UUID own_uuid) {
+  if (log_strings_)
+    log([&](const LoggerPtr &logger) { logger->logSendMsgId(msg_uuid, uuid, own_uuid); });
+}
+
 void Logger::logReceiveFullMsg(UUID msg_uuid, UUID sender, UUID own_uuid) {
   if (log_strings_)
     log([&](const LoggerPtr &logger) { logger->logReceiveFullMsg(msg_uuid, sender, own_uuid); });

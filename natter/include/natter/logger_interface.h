@@ -85,6 +85,7 @@ public:
    * @param own_uuid own node uuid
    */
   virtual void logSendFullMsg(UUID msg_uuid, UUID uuid, UUID own_uuid) = 0;
+  virtual void logSendMsgId(UUID msg_uuid, UUID uuid, UUID own_uuid) = 0;
 
   /**
    * Log receiving full message
