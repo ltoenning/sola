@@ -87,6 +87,10 @@ Network::Impl::Impl(const std::string &ip, std::function<void(const Message &)> 
 }
 
 Network::Impl::~Impl() {
+#ifdef DAISI_SOLANET_NS3_DISABLE_NETWORKING
+  Network::Impl::network_interfaces_.erase(ip_ + ":" + std::to_string(port_));
+#endif
+
   socket_->SetRecvCallback(MakeNullCallback<void, Ptr<Socket>>());
   socket_->Close();
   socket_ = nullptr;

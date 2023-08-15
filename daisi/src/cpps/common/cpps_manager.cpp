@@ -296,14 +296,9 @@ void CppsManager::setupNetworkWifi() {
     amr_sta_dev_.Add(amr_sta_dev_temp);
 
     // set up the AP
-    bool beacon_generation = true;
-#ifdef DAISI_SOLANET_NS3_DISABLE_NETWORKING
-    beacon_generation = false;
-#endif
-
     wifi_mac.SetType("ns3::ApWifiMac", "QosSupported", BooleanValue(true), "Ssid", SsidValue(ssid),
                      "BeaconInterval", TimeValue(Seconds(2.56)), "BeaconGeneration",
-                     ns3::BooleanValue(beacon_generation));
+                     ns3::BooleanValue(true));
     auto ap_sta_dev_temp = wifi.Install(wifi_phy, wifi_mac, access_points_.Get(i));
 
     // Connection between AP and core router

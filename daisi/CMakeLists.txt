@@ -9,7 +9,7 @@ set(CMAKE_CXX_STANDARD 17)
 
 cmake_policy(VERSION 3.19)
 
-option(DAISI_DISABLE_NETWORK_SIMULATION "Disable ns-3 network simulation (use ns-3 as discrete event simulator only)" OFF)
+option(DAISI_DISABLE_UDP_NETWORK_SIMULATION "Disable ns-3 UDP network simulation (use ns-3 as discrete event simulator only)" OFF)
 
 # Set default build type to Debug
 if(NOT CMAKE_BUILD_TYPE)

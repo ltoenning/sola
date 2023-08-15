@@ -67,7 +67,3 @@ target_link_libraries(daisi_cpps_common_cpps_manager
         daisi_random_engine
         daisi_cpps_common_scenariofile_cpps_scenariofile
 )
-
-if(DAISI_DISABLE_NETWORK_SIMULATION)
-        target_compile_definitions(daisi_cpps_common_cpps_manager PRIVATE DAISI_SOLANET_NS3_DISABLE_NETWORKING)
-endif()

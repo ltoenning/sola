@@ -31,7 +31,7 @@ target_include_directories(daisi_solanet_message_ns3
         PUBLIC
             ${PROJECT_SOURCE_DIR}/src)
 
-if(DAISI_DISABLE_NETWORK_SIMULATION)
+if(DAISI_DISABLE_UDP_NETWORK_SIMULATION)
     target_compile_definitions(NetworkUDPSim PRIVATE DAISI_SOLANET_NS3_DISABLE_NETWORKING)
 endif()
 
