@@ -26,7 +26,7 @@
 #include "utils/sola_utils.h"
 
 #ifdef DAISI_SOLANET_NS3_DISABLE_NETWORKING
-#include <set>
+#include <unordered_map>
 
 #include "ns3/simulator.h"
 #endif
@@ -55,13 +55,13 @@ private:
   std::function<void(const Message &)> callback_;
 
 #ifdef DAISI_SOLANET_NS3_DISABLE_NETWORKING
-  static std::set<Network::Impl *> network_interfaces_;
+  static std::unordered_map<std::string, Network::Impl *> network_interfaces_;
 #endif
 };
 
 #ifdef DAISI_SOLANET_NS3_DISABLE_NETWORKING
 // Definition required outside of class declaration
-std::set<Network::Impl *> Network::Impl::network_interfaces_;
+std::unordered_map<std::string, Network::Impl *> Network::Impl::network_interfaces_;
 #endif
 
 Network::Impl::Impl(const std::string &ip, std::function<void(const Message &)> callback)
@@ -82,7 +82,7 @@ Network::Impl::Impl(const std::string &ip, std::function<void(const Message &)> 
   }
 
 #ifdef DAISI_SOLANET_NS3_DISABLE_NETWORKING
-  Network::Impl::network_interfaces_.insert(this);
+  Network::Impl::network_interfaces_.insert({ip_ + ":" + std::to_string(port_), this});
 #endif
 }
 
@@ -122,16 +122,8 @@ void Network::Impl::send(const Message &msg) {
 
 #ifdef DAISI_SOLANET_NS3_DISABLE_NETWORKING
   // Find network interface and schedule receive
-  auto interface = std::find_if(
-      Network::Impl::network_interfaces_.begin(), Network::Impl::network_interfaces_.end(),
-      [msg](const Network::Impl *interface) {
-        return msg.getIp() == interface->getIP() && msg.getPort() == interface->getPort();
-      });
-  if (interface == Network::Impl::network_interfaces_.end()) {
-    throw std::runtime_error("no interface found for message");
-  }
-#error "Not implemented with contexts"
-  ns3::Simulator::Schedule(ns3::MilliSeconds(2), &Network::Impl::processPacket, *interface, packet);
+  auto interface = network_interfaces_.at(msg.getIp() + ":" + std::to_string(msg.getPort()));
+  ns3::Simulator::Schedule(ns3::MilliSeconds(2), &Network::Impl::processPacket, interface, packet);
 #else
   socket_->SendTo(packet, 0, InetSocketAddress(Ipv4Address(msg.getIp().c_str()), msg.getPort()));
 #endif
